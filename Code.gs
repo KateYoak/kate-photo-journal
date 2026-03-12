@@ -137,7 +137,7 @@ function callClaudeAPI(apiKey, prompt, base64Image, mimeType) {
   var url = 'https://api.anthropic.com/v1/messages';
   
   var payload = {
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-6',
     max_tokens: 150,
     messages: [{
       role: 'user',
@@ -179,7 +179,7 @@ function callClaudeAPI(apiKey, prompt, base64Image, mimeType) {
   
   return {
     caption: caption,
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-6',
     timestamp: new Date().toISOString()
   };
 }
@@ -271,7 +271,7 @@ function setupAnnotation() {
   
   // Set your annotation prompt
   properties.setProperty('ANNOTATION_PROMPT', 
-    'Look at this screenshot and write a brief, natural caption (8-12 words) describing the main activity or content. Focus on what\'s happening, not technical details.');
+    'Describe this image in 1-2 sentences focusing on the main subject, activity, and setting. Add 2-3 relevant hashtags at the end. Keep total under 120 chars. Examples: "Friends dancing at a studio performance #dance #performance #friends" or "Mirror selfie with three guys hanging out #selfie #friends #casual"');
   
   Logger.log('Setup complete. Remember to set CLAUDE_API_KEY in the properties.');
 }
