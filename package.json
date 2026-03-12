@@ -1,0 +1,25 @@
+{
+  "name": "kate-photo-journal",
+  "version": "1.0.0",
+  "description": "Automated weekly photo journal using Google Apps Script, Google Drive, and Blogger.",
+  "main": "Code.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KateYoak/kate-photo-journal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/KateYoak/kate-photo-journal/issues"
+  },
+  "homepage": "https://github.com/KateYoak/kate-photo-journal#readme",
+  "dependencies": {
+    "googleapis": "^171.4.0",
+    "puppeteer": "^24.39.0"
+  }
+}

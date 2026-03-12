@@ -43,12 +43,12 @@ function annotateImages() {
   var processed = 0;
   images.forEach(function(image, index) {
     try {
-      // Re-annotate with improved prompt (comment out to skip existing)
-      // var existingCaption = image.properties.ai_caption;
-      // if (existingCaption) {
-      //   Logger.log('Skipping ' + image.name + ' - already annotated');
-      //   return;
-      // }
+      // Check if already annotated
+      var existingCaption = image.properties.ai_caption;
+      if (existingCaption) {
+        Logger.log('Skipping ' + image.name + ' - already annotated');
+        return;
+      }
       
       Logger.log('Processing image ' + (index + 1) + ': ' + image.name);
       
@@ -712,7 +712,11 @@ function createWeeklyJournalDraft(startDateStr, endDateStr) {
     Logger.log('Processing photo ' + (index + 1) + ' of ' + photos.length + '…');
     try {
       var url     = makePhotoPublic(item.id);
-      var caption = formatDate(item.photoDate);
+      
+      // Try to get AI-generated caption first, fall back to date
+      var aiCaption = getFullCaption(item.id);
+      var caption = aiCaption || formatDate(item.photoDate);
+      
       hostedPhotos.push({ url: url, caption: caption, name: item.name });
     } catch (e) {
       Logger.log('WARNING: skipping ' + item.name + ' — ' + e.message);
