@@ -1,0 +1,17 @@
+# Apps Script local files
+.clasprc.json
+.clasp.json
+
+# Node modules if we add any
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
