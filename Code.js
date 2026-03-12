@@ -720,21 +720,42 @@ function createWeeklyJournalDraft(startDateStr, endDateStr) {
   });
   Logger.log('Processed ' + hostedPhotos.length + ' photo(s).');
 
-  // One combined draft post
-  var combined = createBloggerDraft(weekTitle, buildCombinedPostHtml(hostedPhotos));
-  Logger.log('Combined draft created: ' + combined.id);
+  // One draft post per photo
+  var created = 0;
+  hostedPhotos.forEach(function(photo, index) {
+    var attempts = 0;
+    var success  = false;
+    while (!success && attempts < 3) {
+      try {
+        Utilities.sleep(3000);
+        var post = createBloggerDraft(weekTitle + ' — ' + photo.caption, buildSinglePhotoHtml(photo));
+        Logger.log('Draft ' + (index + 1) + ' created: ' + post.id + ' (' + photo.name + ')');
+        created++;
+        success = true;
+      } catch (e) {
+        attempts++;
+        if (e.message.indexOf('429') !== -1 && attempts < 3) {
+          var wait = attempts * 30000;
+          Logger.log('Rate limited on photo ' + (index + 1) + ', waiting ' + (wait/1000) + 's (attempt ' + attempts + ')…');
+          Utilities.sleep(wait);
+        } else {
+          Logger.log('WARNING: skipping draft ' + (index + 1) + ' — ' + e.message);
+          success = true; // exit loop
+        }
+      }
+    }
+  });
 
-  var editUrl = 'https://www.blogger.com/blog/post/edit/' + BLOG_ID + '/' + combined.id;
   GmailApp.sendEmail(
     NOTIFICATION_EMAIL,
     'Your weekly journal is ready \u270d\ufe0f',
     'Hi Kate,\n\n' +
     'Week: ' + weekTitle + '\n' +
-    'Photos: ' + hostedPhotos.length + '\n\n' +
-    'Combined draft:\n' + editUrl + '\n\n' +
+    'Posts created: ' + created + ' of ' + hostedPhotos.length + '\n\n' +
+    'Review your drafts:\nhttps://www.blogger.com/blog/posts/' + BLOG_ID + '\n\n' +
     'Have a great week! \ud83d\udcf8'
   );
-  Logger.log('Done.');
+  Logger.log('Done. Created ' + created + ' draft posts.');
 }
 
 // ============================================================

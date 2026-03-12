@@ -52,7 +52,7 @@ function annotateImages() {
       
       Logger.log('Processing image ' + (index + 1) + ': ' + image.name);
       
-      // Get image as base64
+      // Get image as base64, resize if needed
       var file = DriveApp.getFileById(image.id);
       var blob = file.getBlob();
       
