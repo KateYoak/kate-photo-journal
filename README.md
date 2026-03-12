@@ -16,6 +16,7 @@ This project automatically creates weekly blog posts from photos synced to Googl
 - `Code.gs` - Main Apps Script code
 - `appsscript.json` - Apps Script manifest and OAuth scopes
 - `Code.js` - Apps Script format (auto-generated from Code.gs)
+- `blogger-theme.xml` - Current Blogger theme for customization
 
 ## Setup
 
