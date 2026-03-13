@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1100">
+  <title>Kate's Photo Diary — CSS Injection Test</title>
+  <!-- INJECTED CSS (would come from a Blogger post body <style> tag) -->
+  <style>
+/* ===== KATE PHOTO JOURNAL — MOSAIC GRID INJECTION ===== */
+/* Applied via CSS in a Blogger post body */
+
+/* Transform the post list into a CSS grid on index pages */
+body .blog-posts.hfeed {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+  grid-auto-rows: 240px !important;
+  gap: 4px !important;
+  background: #111 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Flatten date grouping wrappers into the grid */
+body .blog-posts.hfeed .date-outer,
+body .blog-posts.hfeed .date-posts {
+  display: contents !important;
+}
+
+/* Each post is a grid cell */
+body .blog-posts.hfeed .post-outer {
+  position: relative !important;
+  overflow: hidden !important;
+  background: #222 !important;
+  cursor: pointer !important;
+}
+
+/* Wide cells: every 7th post at positions 1, 8, 15... */
+body .blog-posts.hfeed .post-outer:nth-child(7n+1) {
+  grid-column: span 2 !important;
+  grid-row: span 2 !important;
+}
+
+/* Fill cell with post */
+body .blog-posts.hfeed .post-outer .post {
+  position: absolute !important;
+  inset: 0 !important;
+  margin: 0 !important;
+}
+
+/* Post body fills the cell */
+body .blog-posts.hfeed .post-outer .post-body {
+  position: absolute !important;
+  inset: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Image fills the cell */
+body .blog-posts.hfeed .post-outer .post-body figure,
+body .blog-posts.hfeed .post-outer .post-body figure img,
+body .blog-posts.hfeed .post-outer .post-body img:not(.icon-action) {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  background: none !important;
+  transition: transform 0.4s ease, opacity 0.4s ease !important;
+}
+
+/* Hover effect */
+body .blog-posts.hfeed .post-outer:hover .post-body img:not(.icon-action) {
+  transform: scale(1.06) !important;
+  opacity: 0.88 !important;
+}
+
+/* Hide non-image content */
+body .blog-posts.hfeed h2.date-header,
+body .blog-posts.hfeed .post-outer .post-header,
+body .blog-posts.hfeed .post-outer .post-footer,
+body .blog-posts.hfeed .post-outer .post-body p,
+body .blog-posts.hfeed .post-outer .post-body div:not(.post-body):not([class*="caption"]) {
+  display: none !important;
+}
+
+/* Post title — shown on hover */
+body .blog-posts.hfeed .post-outer h3.post-title {
+  display: block !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 10 !important;
+  margin: 0 !important;
+  padding: 24px 12px 12px !important;
+  font-size: 13px !important;
+  font-weight: bold !important;
+  background: linear-gradient(transparent, rgba(0,0,0,0.72)) !important;
+  transform: translateY(100%) !important;
+  transition: transform 0.3s ease !important;
+}
+
+body .blog-posts.hfeed .post-outer:hover h3.post-title {
+  transform: translateY(0) !important;
+}
+
+body .blog-posts.hfeed .post-outer h3.post-title a {
+  color: #ffffff !important;
+  text-decoration: none !important;
+  font-size: 13px !important;
+  font-weight: bold !important;
+}
+
+/* Keep navigation visible */
+body .blog-pager {
+  clear: both !important;
+  padding: 12px 0 !important;
+  display: block !important;
+}
+</style>
+  <!-- Original Simple theme body styles -->
+  <style>
+    body { font-family: Arial, sans-serif; background: #eeaa00; margin: 0; padding: 0; }
+    .blog-outer { max-width: 960px; margin: 0 auto; background: #fff; box-shadow: 0 0 40px rgba(0,0,0,.15); }
+    .header-outer { background: #cc6611; padding: 30px 40px; }
+    .header-outer h1 { color: #fff; font-size: 48px; font-weight: normal; margin: 0; }
+    .main-inner { padding: 20px 10px; }
+    h3.post-title { font-size: 22px; margin: .75em 0 0; }
+    .post-footer { background: #f9f9f9; padding: 5px 10px; font-size: 90%; color: #666; }
+    .post-body { font-size: 110%; line-height: 1.4; }
+    .post-body img { padding: 5px; border: 1px solid #eee; box-shadow: 1px 1px 5px rgba(0,0,0,.1); }
+    .blog-pager { padding: 10px; text-align: center; background: #f5f5f5; }
+  </style>
+</head>
+<body>
+<div class="blog-outer">
+  <div class="header-outer">
+    <h1>Kate's Photo Diary</h1>
+    <p style="color:#fff;opacity:.85;font-size:18px;margin:6px 0 0">A weekly photo journal</p>
+  </div>
+  <div class="main-outer">
+    <div class="main-inner">
+      <div class="column-center-inner">
+        <div class="section">
+          <div class="blog-posts hfeed">
+            
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 2, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1zDpasMT0Fp4twUUdDkCFFkkwx1GA4ub0" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 2, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 2, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1x8RsqFkOilD28F9gRjGbsXNlIVhGnFjk" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 2, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 2, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1vFMEIKJpSQrKOaUV7AHE32m3sWUEv2xV" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 2, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 2, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1uQ2Msp4LsVxYaB6eMchPdQkJ3sWmGUz2" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 2, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 3, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1tXm1pKFqJL7bV0iGHn4RqVbkEkWR5wEI" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 3, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 3, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1sQ5H7pJkLmN8VxZ2wAb3CdEfGhIjKlMn" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 3, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 3, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1rP4G6oIlKmN7UwY1vAb2CdEfGhIjKlMo" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 3, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 3, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1qO3F5nHkJlM6TvX0uZa1BcDeFgHiJkLp" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 3, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 4, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1pN2E4mGjIkL5SuW9tYz0AbCdEfGhIjKq" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 4, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 4, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1oM1D3lFiHjK4RtV8sXy9ZaAbBcDeFgHr" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 4, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 4, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1nL0C2kEhGiJ3QsU7rWx8YzBaCbDcEdFs" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 4, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 4, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1mK9B1jDgFiH2PrT6qVw7XyAbBcCdDeEt" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 4, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="date-outer">
+<div class="date-posts">
+<div class="post-outer">
+<div class="post hentry">
+<h3 class="post-title entry-title"><a href="#">Week of March 2–8, 2026 — March 5, 2026</a></h3>
+<div class="post-header"><div class="post-header-line-1"></div></div>
+<div class="post-body entry-content">
+<figure><img src="https://lh3.googleusercontent.com/d/1lJ8A0iCfEhG1OqS5pUv6WxYzAaBbCcDu" alt="Photo"/></figure>
+</div>
+<div class="post-footer"><div class="post-footer-line">Author: Kate | March 5, 2026</div></div>
+</div>
+</div>
+</div>
+</div>
+          </div>
+          <div class="blog-pager">← Older | Newer →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

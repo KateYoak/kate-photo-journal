@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=1100"/>
+  <title>Kate's Photo Diary — Mosaic Preview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #eeaa00; }
+
+    .blog-header {
+      background: #cc6611;
+      padding: 30px 40px;
+      color: #fff;
+    }
+    .blog-header h1 { font-size: 48px; font-weight: normal; text-shadow: 1px 2px 3px rgba(0,0,0,.2); }
+    .blog-header p { font-size: 18px; opacity: 0.85; margin-top: 6px; }
+
+    .blog-content {
+      background: #fff;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px 10px;
+      box-shadow: 0 0 40px rgba(0,0,0,.15);
+    }
+
+    /* ===== Photo Mosaic Grid ===== */
+    .photo-mosaic {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-auto-rows: 220px;
+      gap: 4px;
+      background: #111;
+    }
+
+    .mosaic-item {
+      position: relative;
+      overflow: hidden;
+      background: #222;
+    }
+
+    .mosaic-item.big {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+
+    .mosaic-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+
+    .mosaic-item:hover .mosaic-img {
+      transform: scale(1.06);
+      opacity: 0.88;
+    }
+
+    .mosaic-caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.72));
+      padding: 32px 12px 12px;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+
+    .mosaic-item:hover .mosaic-caption {
+      transform: translateY(0);
+    }
+
+    .mosaic-title {
+      color: #fff; font-size: 13px; font-weight: bold;
+      display: block; line-height: 1.4;
+    }
+
+    .page-nav {
+      padding: 16px 10px;
+      text-align: center;
+      font-size: 14px;
+      color: #888;
+    }
+  </style>
+</head><body>
+  <div class="blog-header">
+    <h1>Kate's Photo Diary</h1>
+    <p>A weekly photo journal — March 2026</p>
+  </div>
+  <div class="blog-content">
+    <div class="photo-mosaic">
+
+    <div class="mosaic-item big">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_01854142734.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1zDpasMT0Fp4twUUdDkCFFkkwx1GA4ub0=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_01524419499.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1MqlYI_KGP0rB_IswIct0BOY3kcv_WkBx=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_01905155652.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1ZamBHSbMu9EYBoflm5INknTL9QNnxKwr=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_01051433082.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1bM7xrfDPzp04oybIMkRoiQFlfv51oFDJ=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_01096512451.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/10nM6jT4EoYxxAayY0qkyE7s9Zw-czLf2=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_0737131951.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1rSG_P5zcwbMp__ZYxRUMYgxJrzuXRNNp=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_0844853825.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1ff0aUbKsa8OZywZ3D_9c5Qh9rmSguSS6=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item big">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_02130867393.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/15-nLJPpdLBvmYBmLXWqhCvfpU4qstk3N=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-7_01884627567.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1LLE6eKCF1oePjzpIODcrMo3riHzMSn5p=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 7, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-8_0377294306.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/13ttnnTay9nUEi-y4InF9LB0qIwFGyANl=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 8, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-2_01603112378.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1boyP-c83U172XQ6RsgwtsjLJV-XfWvH6=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 2, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-2_0926472746.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1tLt7b7YfCyhR3V8I-CsC_MnwrMlv5e-9=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 2, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-2_01153976815.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1JjWxBI9DjjjdxA35yXdoYB122R18EOl4=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 2, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-2_01910198236.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1b-4h7PsEKmjStv0Ve2kfYrfJn7j8SdBo=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 2, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item big">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-2_01945211104.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1SqDizCPiQQYH2EiPfoFzhn62WGtAAFrB=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 2, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-2_0420078532.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1qBlspoDsJvwtj2iONdBRg4BFuG6f-qkC=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 2, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-5_0406490367.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1FIDoL7z9gNXuw3LccoBPcIPXmWffGmtD=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 5, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-5_01974769872.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1MpH7RhkuTlQXQzw9Yizxbba-y81aBmAu=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 5, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-6_0303774675.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1ExztuzbmCOzdTwMTupnhQiov9pa3N7WV=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 6, 2026</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="mosaic-item">
+      <a href="https://katephotodiary.blogspot.com/2026/03/week-of-march-2-march-8-2026-march-6_01223052807.html">
+        <img class="mosaic-img" src="https://lh3.googleusercontent.com/d/1tXelQkEJoBGjEVKR9wUHezXCr2BnuwJr=s72-c" alt="" loading="eager"/>
+        <div class="mosaic-caption">
+          <span class="mosaic-title">Week of March 2 — March 8, 2026 — March 6, 2026</span>
+        </div>
+      </a>
+    </div>
+    </div>
+    <div class="page-nav">← Older posts | Newer posts →</div>
+  </div>
+</body></html>

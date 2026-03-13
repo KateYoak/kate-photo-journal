@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Mosaic Theme to Blogger</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; }
+    h1 { color: #1a73e8; }
+    .step { background: #f0f4ff; border-left: 4px solid #1a73e8; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+    .step h3 { margin: 0 0 8px; color: #1a73e8; }
+    button { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 15px; cursor: pointer; margin: 8px 4px; }
+    button:hover { background: #1557b0; }
+    button.secondary { background: #5f6368; }
+    #status { margin: 16px 0; padding: 12px; border-radius: 8px; display: none; }
+    .success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+    .info { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    textarea { width: 100%; height: 80px; font-family: monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<h1>📸 Kate's Photo Journal — Theme Upload</h1>
+<p>This page automatically uploads the mosaic theme to your Blogger blog.</p>
+
+<div class="step">
+  <h3>Step 1: Make sure you're logged into Blogger</h3>
+  <p>Open Blogger in a new tab and verify you're logged in as kate@yoak.com.</p>
+  <button onclick="openBlogger()">Open Blogger Dashboard</button>
+</div>
+
+<div class="step">
+  <h3>Step 2: Open the Template Editor</h3>
+  <p>Click the button below to open the Blogger template source editor for your blog.</p>
+  <button onclick="openEditor()">Open Template Editor</button>
+</div>
+
+<div class="step">
+  <h3>Step 3: Auto-paste the mosaic theme</h3>
+  <p>Once the template editor is open and showing your blog's XML, click this button to replace it with the mosaic theme:</p>
+  <button onclick="pasteTheme()" id="pasteBtn">⚡ Auto-Paste Mosaic Theme (then click Save)</button>
+  <p style="margin-top:8px; font-size:13px; color:#666;">
+    This will fetch the theme XML from your local file and paste it into the editor.
+    After pasting, click the <strong>Save</strong> button in the template editor.
+  </p>
+</div>
+
+<div class="step">
+  <h3>Manual fallback: Copy & Paste XML</h3>
+  <p>If auto-paste doesn't work, copy the XML below and manually paste it into the template editor (select all existing text first, then paste):</p>
+  <button onclick="loadXml()" class="secondary">Load XML Text</button>
+  <button onclick="copyXml()" class="secondary" id="copyBtn" style="display:none">📋 Copy XML to Clipboard</button>
+  <div id="xmlArea" style="display:none; margin-top:8px;">
+    <textarea id="xmlContent" readonly placeholder="Click 'Load XML Text' to load..."></textarea>
+  </div>
+</div>
+
+<div id="status"></div>
+
+<script>
+const BLOGGER_EDITOR_URL = 'https://www.blogger.com/blog/template/source/6171160289292513153';
+const BLOGGER_URL = 'https://www.blogger.com/';
+
+let themeXml = null;
+let editorWindow = null;
+
+function showStatus(msg, type = 'info') {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = type;
+  el.style.display = 'block';
+}
+
+function openBlogger() {
+  window.open(BLOGGER_URL, '_blank');
+}
+
+function openEditor() {
+  editorWindow = window.open(BLOGGER_EDITOR_URL, 'blogger-editor');
+  showStatus('Template editor opening... wait for it to fully load before using Step 3.', 'info');
+}
+
+async function loadThemeXml() {
+  if (themeXml) return themeXml;
+
+  // Try to load from local file path (will work if served locally)
+  try {
+    const response = await fetch('./blogger-theme.xml');
+    if (response.ok) {
+      themeXml = await response.text();
+      return themeXml;
+    }
+  } catch (e) {
+    // Local fetch failed
+  }
+
+  // Try loading from the same directory
+  showStatus('Loading theme XML...', 'info');
+  throw new Error('Could not load blogger-theme.xml. Use the manual copy method below.');
+}
+
+async function loadXml() {
+  try {
+    const xml = await loadThemeXml();
+    const textarea = document.getElementById('xmlContent');
+    textarea.value = xml;
+    document.getElementById('xmlArea').style.display = 'block';
+    document.getElementById('copyBtn').style.display = 'inline-block';
+    showStatus(`✓ XML loaded (${xml.length.toLocaleString()} characters). Click "Copy XML to Clipboard" then paste into the template editor.`, 'success');
+  } catch (e) {
+    showStatus('Error: ' + e.message, 'error');
+  }
+}
+
+async function copyXml() {
+  const textarea = document.getElementById('xmlContent');
+  if (!textarea.value) {
+    await loadXml();
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(textarea.value);
+    showStatus(`✓ Copied ${textarea.value.length.toLocaleString()} characters to clipboard! Now paste into the template editor (Ctrl+A, then Ctrl+V).`, 'success');
+  } catch (e) {
+    textarea.select();
+    document.execCommand('copy');
+    showStatus('✓ Copied to clipboard using fallback method.', 'success');
+  }
+}
+
+async function pasteTheme() {
+  showStatus('Loading theme XML...', 'info');
+
+  let xml;
+  try {
+    xml = await loadThemeXml();
+  } catch (e) {
+    showStatus('Could not load XML: ' + e.message + '. Try the manual copy method.', 'error');
+    return;
+  }
+
+  if (!editorWindow || editorWindow.closed) {
+    editorWindow = window.open(BLOGGER_EDITOR_URL, 'blogger-editor');
+    showStatus('Opening template editor... wait for it to load, then click "Auto-Paste" again.', 'info');
+    return;
+  }
+
+  // Try to inject into the already-open template editor
+  try {
+    // Try direct DOM manipulation (same-origin check may block this)
+    editorWindow.focus();
+
+    const textarea = editorWindow.document.querySelector('textarea');
+    if (textarea) {
+      textarea.focus();
+      textarea.value = xml;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.dispatchEvent(new Event('change', { bubbles: true }));
+      showStatus('✓ Theme pasted into editor! Now click "Save" in the template editor window.', 'success');
+    } else {
+      showStatus('Could not find textarea in template editor. Is it fully loaded? Try the Copy method below.', 'error');
+    }
+  } catch (e) {
+    // Cross-origin blocked
+    showStatus(
+      'Auto-paste blocked by browser security. Please use the manual copy method: ' +
+      'click "Load XML Text", then "Copy XML to Clipboard", ' +
+      'then switch to the template editor, select all (Ctrl+A), and paste (Ctrl+V).',
+      'error'
+    );
+  }
+}
+</script>
+
+</body>
+</html>

@@ -276,6 +276,756 @@ function setupAnnotation() {
   Logger.log('Setup complete. Remember to set CLAUDE_API_KEY in the properties.');
 }
 
+/**
+ * Migrates existing AI captions from custom properties to visible Description field
+ */
+function migrateAICaptionsToDescription() {
+  Logger.log('Starting migration of AI captions to Description field...');
+  
+  var images = getImagesFromFolder(DRIVE_FOLDER_ID, 10); // Get more to find annotated ones
+  var migrated = 0;
+  
+  images.forEach(function(image) {
+    try {
+      // Check if it has an AI caption in custom properties
+      var aiCaption = image.properties && image.properties.ai_caption;
+      if (aiCaption) {
+        Logger.log('Migrating caption for: ' + image.name);
+        
+        // Get full caption (handles split captions)
+        var fullCaption = getFullCaption(image.id);
+        
+        if (fullCaption) {
+          // Update the description field via Drive API
+          var url = DRIVE_FILES_URL + '/' + image.id;
+          var payload = {
+            description: fullCaption
+          };
+          
+          var options = {
+            method: 'PATCH',
+            headers: {
+              'Authorization': 'Bearer ' + ScriptApp.getOAuthToken(),
+              'Content-Type': 'application/json'
+            },
+            payload: JSON.stringify(payload)
+          };
+          
+          var response = UrlFetchApp.fetch(url, options);
+          if (response.getResponseCode() === 200) {
+            Logger.log('✅ Migrated: ' + fullCaption);
+            migrated++;
+          } else {
+            Logger.log('❌ Failed to migrate ' + image.name + ': ' + response.getContentText());
+          }
+        }
+      }
+    } catch (e) {
+      Logger.log('ERROR migrating ' + image.name + ': ' + e.message);
+    }
+  });
+  
+  Logger.log('Migration complete. Migrated ' + migrated + ' captions to Description field.');
+}
+
+// ============================================================
+// HYBRID RECOGNITION SYSTEM
+// ============================================================
+
+/**
+ * Hybrid Recognition System for faces, screenshots, and apps
+ * Uses Google Vision API + custom learning database
+ */
+
+// Constants for Vision API
+var VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';
+var KNOWLEDGE_BASE_FILE = 'photo-journal-knowledge-base.json';
+
+/**
+ * Main function to analyze an image with hybrid recognition
+ */
+function analyzeImageWithVision(fileId) {
+  Logger.log('Analyzing image with Vision API: ' + fileId);
+  
+  try {
+    // Get image data
+    var file = DriveApp.getFileById(fileId);
+    var blob = file.getBlob();
+    var base64 = Utilities.base64Encode(blob.getBytes());
+    
+    // Call Vision API for multiple detection types
+    var visionResults = callVisionAPI(base64);
+    
+    // Process results
+    var analysis = {
+      faces: processFaceDetection(visionResults.faces || []),
+      text: processTextDetection(visionResults.text || []),
+      objects: processObjectDetection(visionResults.objects || []),
+      suggestions: []
+    };
+    
+    // Generate smart suggestions based on analysis + knowledge base
+    analysis.suggestions = generateSmartSuggestions(analysis);
+    
+    Logger.log('Vision analysis complete: ' + JSON.stringify(analysis));
+    return analysis;
+    
+  } catch (e) {
+    Logger.log('ERROR in analyzeImageWithVision: ' + e.message);
+    return null;
+  }
+}
+
+/**
+ * Call Google Vision API with multiple feature types
+ */
+function callVisionAPI(base64Image) {
+  var payload = {
+    requests: [{
+      image: {
+        content: base64Image
+      },
+      features: [
+        { type: 'FACE_DETECTION', maxResults: 10 },
+        { type: 'TEXT_DETECTION', maxResults: 1 },
+        { type: 'OBJECT_LOCALIZATION', maxResults: 10 }
+      ]
+    }]
+  };
+  
+  var options = {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + ScriptApp.getOAuthToken(),
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify(payload)
+  };
+  
+  var response = UrlFetchApp.fetch(VISION_API_URL, options);
+  var result = JSON.parse(response.getContentText());
+  
+  if (result.responses && result.responses[0]) {
+    return {
+      faces: result.responses[0].faceAnnotations,
+      text: result.responses[0].textAnnotations,
+      objects: result.responses[0].localizedObjectAnnotations
+    };
+  }
+  
+  return {};
+}
+
+/**
+ * Process face detection results
+ */
+function processFaceDetection(faces) {
+  var faceData = [];
+  
+  faces.forEach(function(face, index) {
+    // Extract face bounding box and confidence
+    var bounds = face.boundingPoly.vertices;
+    var faceInfo = {
+      id: 'face_' + index,
+      bounds: bounds,
+      confidence: face.detectionConfidence || 0.5,
+      landmarks: face.landmarks || [],
+      // Try to match against known faces
+      possibleMatch: matchFaceToKnownPeople(face)
+    };
+    
+    faceData.push(faceInfo);
+  });
+  
+  return faceData;
+}
+
+/**
+ * Process text detection for app/screenshot recognition
+ */
+function processTextDetection(textAnnotations) {
+  if (!textAnnotations || textAnnotations.length === 0) {
+    return { fullText: '', apps: [], contexts: [] };
+  }
+  
+  var fullText = textAnnotations[0].description || '';
+  
+  return {
+    fullText: fullText,
+    apps: detectAppsFromText(fullText),
+    contexts: detectContextFromText(fullText)
+  };
+}
+
+/**
+ * Process object detection results
+ */
+function processObjectDetection(objects) {
+  var objectData = [];
+  
+  objects.forEach(function(obj) {
+    objectData.push({
+      name: obj.name,
+      confidence: obj.score,
+      bounds: obj.boundingPoly
+    });
+  });
+  
+  return objectData;
+}
+
+/**
+ * Detect apps from text content
+ */
+function detectAppsFromText(text) {
+  var apps = [];
+  var appPatterns = {
+    'Duolingo': /duolingo/i,
+    'LingQ': /lingq/i,
+    'Spotify': /spotify/i,
+    'Instagram': /instagram/i,
+    'Twitter': /twitter/i,
+    'LinkedIn': /linkedin/i
+  };
+  
+  for (var app in appPatterns) {
+    if (appPatterns[app].test(text)) {
+      apps.push(app);
+    }
+  }
+  
+  return apps;
+}
+
+/**
+ * Detect context from text content
+ */
+function detectContextFromText(text) {
+  var contexts = [];
+  var contextPatterns = {
+    'spanish_learning': /spanish|español|duolingo|lingq/i,
+    'social_media': /instagram|twitter|facebook|linkedin/i,
+    'music': /spotify|music|song|playlist/i,
+    'work': /meeting|email|slack|zoom|calendar/i
+  };
+  
+  for (var context in contextPatterns) {
+    if (contextPatterns[context].test(text)) {
+      contexts.push(context);
+    }
+  }
+  
+  return contexts;
+}
+
+/**
+ * Try to match detected face to known people
+ */
+function matchFaceToKnownPeople(face) {
+  // This will be enhanced with actual face matching logic
+  // For now, return null (no match)
+  return null;
+}
+
+/**
+ * Generate smart tag suggestions based on analysis
+ */
+function generateSmartSuggestions(analysis) {
+  var suggestions = [];
+  
+  // Face-based suggestions
+  if (analysis.faces.length > 0) {
+    if (analysis.faces.length === 1) {
+      suggestions.push('#photo:portrait');
+    } else if (analysis.faces.length > 1) {
+      suggestions.push('#photo:group');
+    }
+  }
+  
+  // App-based suggestions
+  analysis.text.apps.forEach(function(app) {
+    suggestions.push('#app:' + app);
+  });
+  
+  // Context-based suggestions
+  analysis.text.contexts.forEach(function(context) {
+    switch(context) {
+      case 'spanish_learning':
+        suggestions.push('#hobby:spanish');
+        break;
+      case 'social_media':
+        suggestions.push('#activity:social');
+        break;
+      case 'music':
+        suggestions.push('#activity:music');
+        break;
+      case 'work':
+        suggestions.push('#context:work');
+        break;
+    }
+  });
+  
+  // Object-based suggestions
+  analysis.objects.forEach(function(obj) {
+    if (obj.confidence > 0.7) {
+      suggestions.push('#object:' + obj.name.toLowerCase().replace(/\s+/g, ''));
+    }
+  });
+  
+  return suggestions;
+}
+
+/**
+ * Enhanced annotation function using hybrid recognition
+ */
+function annotateImagesWithVision() {
+  Logger.log('Starting enhanced image annotation with Vision API...');
+  
+  var prompt = getAnnotationPrompt();
+  if (!prompt) {
+    Logger.log('ERROR: No annotation prompt found. Run setupAnnotation() first.');
+    return;
+  }
+
+  var apiKey = PropertiesService.getScriptProperties().getProperty('CLAUDE_API_KEY');
+  if (!apiKey) {
+    Logger.log('ERROR: No Claude API key found. Add CLAUDE_API_KEY to Script Properties.');
+    return;
+  }
+
+  var images = getImagesFromFolder(DRIVE_FOLDER_ID, 3); // Process 3 at a time for testing
+  Logger.log('Found ' + images.length + ' images to process with Vision');
+
+  var processed = 0;
+  images.forEach(function(image, index) {
+    try {
+      // Skip if already annotated (for now)
+      var existingCaption = image.properties && image.properties.ai_caption;
+      if (existingCaption) {
+        Logger.log('Skipping ' + image.name + ' - already annotated');
+        return;
+      }
+
+      Logger.log('Processing image ' + (index + 1) + ': ' + image.name);
+
+      var file = DriveApp.getFileById(image.id);
+      var blob = file.getBlob();
+
+      // Skip if image is too large
+      if (blob.getBytes().length > 4000000) {
+        Logger.log('Skipping large image: ' + image.name + ' (' + Math.round(blob.getBytes().length/1024/1024*100)/100 + 'MB)');
+        return;
+      }
+
+      // Analyze with Vision API
+      var visionAnalysis = analyzeImageWithVision(image.id);
+      
+      // Create enhanced prompt with Vision insights
+      var enhancedPrompt = createEnhancedPrompt(prompt, visionAnalysis);
+      
+      var base64 = Utilities.base64Encode(blob.getBytes());
+      var annotation = callClaudeAPI(apiKey, enhancedPrompt, base64, image.mimeType);
+
+      // Store annotation in description field
+      storeAnnotationInDescription(image.id, annotation.caption);
+      
+      // Store Vision analysis data for learning
+      storeVisionAnalysis(image.id, visionAnalysis);
+
+      processed++;
+      Logger.log('Enhanced annotation: ' + annotation.caption);
+      Logger.log('Vision suggestions: ' + JSON.stringify(visionAnalysis.suggestions));
+
+    } catch (e) {
+      Logger.log('ERROR processing ' + image.name + ': ' + e.message);
+    }
+  });
+  
+  Logger.log('Enhanced annotation complete. Processed ' + processed + ' images.');
+}
+
+/**
+ * Create enhanced prompt with Vision API insights
+ */
+function createEnhancedPrompt(basePrompt, visionAnalysis) {
+  if (!visionAnalysis) return basePrompt;
+  
+  var enhancements = [];
+  
+  // Add face information
+  if (visionAnalysis.faces && visionAnalysis.faces.length > 0) {
+    enhancements.push('Image contains ' + visionAnalysis.faces.length + ' person(s)');
+  }
+  
+  // Add detected apps
+  if (visionAnalysis.text && visionAnalysis.text.apps.length > 0) {
+    enhancements.push('Detected apps: ' + visionAnalysis.text.apps.join(', '));
+  }
+  
+  // Add text context
+  if (visionAnalysis.text && visionAnalysis.text.fullText) {
+    var textSnippet = visionAnalysis.text.fullText.substring(0, 100);
+    if (textSnippet.trim()) {
+      enhancements.push('Text visible: "' + textSnippet + '"');
+    }
+  }
+  
+  if (enhancements.length > 0) {
+    return basePrompt + '\n\nAdditional context: ' + enhancements.join('. ') + '.';
+  }
+  
+  return basePrompt;
+}
+
+/**
+ * Store annotation in visible description field
+ */
+function storeAnnotationInDescription(fileId, caption) {
+  var url = DRIVE_FILES_URL + '/' + fileId;
+  var payload = {
+    description: caption
+  };
+  
+  var options = {
+    method: 'PATCH',
+    headers: {
+      'Authorization': 'Bearer ' + ScriptApp.getOAuthToken(),
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify(payload)
+  };
+  
+  UrlFetchApp.fetch(url, options);
+}
+
+/**
+ * Store Vision analysis data for learning
+ */
+function storeVisionAnalysis(fileId, analysis) {
+  // Store in a separate knowledge base file for later learning
+  var knowledgeBase = getKnowledgeBase();
+  
+  if (!knowledgeBase.visionData) {
+    knowledgeBase.visionData = {};
+  }
+  
+  knowledgeBase.visionData[fileId] = {
+    timestamp: new Date().toISOString(),
+    analysis: analysis
+  };
+  
+  saveKnowledgeBase(knowledgeBase);
+}
+
+/**
+ * Get or create knowledge base
+ */
+function getKnowledgeBase() {
+  try {
+    var files = DriveApp.getFilesByName(KNOWLEDGE_BASE_FILE);
+    if (files.hasNext()) {
+      var file = files.next();
+      var content = file.getBlob().getDataAsString();
+      return JSON.parse(content);
+    }
+  } catch (e) {
+    Logger.log('Creating new knowledge base: ' + e.message);
+  }
+  
+  // Create new knowledge base
+  return {
+    version: '1.0',
+    created: new Date().toISOString(),
+    faceDatabase: {},
+    appPatterns: {},
+    contextPatterns: {},
+    visionData: {}
+  };
+}
+
+/**
+ * Save knowledge base to Drive
+ */
+function saveKnowledgeBase(knowledgeBase) {
+  var content = JSON.stringify(knowledgeBase, null, 2);
+  
+  try {
+    var files = DriveApp.getFilesByName(KNOWLEDGE_BASE_FILE);
+    if (files.hasNext()) {
+      var file = files.next();
+      file.setContent(content);
+    } else {
+      DriveApp.createFile(KNOWLEDGE_BASE_FILE, content, 'application/json');
+    }
+  } catch (e) {
+    Logger.log('ERROR saving knowledge base: ' + e.message);
+  }
+}
+
+// ============================================================
+// TRAINING & LEARNING FUNCTIONS
+// ============================================================
+
+/**
+ * Learn from user corrections by scanning Drive descriptions
+ * This function looks for changes you made to AI-generated captions
+ */
+function learnFromCorrections() {
+  Logger.log('Starting learning process from user corrections...');
+  
+  var images = getImagesFromFolder(DRIVE_FOLDER_ID, 20); // Check recent images
+  var knowledgeBase = getKnowledgeBase();
+  var learningCount = 0;
+  
+  images.forEach(function(image) {
+    try {
+      // Get current description from Drive
+      var currentDescription = getFileDescription(image.id);
+      
+      // Get stored Vision analysis
+      var storedAnalysis = knowledgeBase.visionData[image.id];
+      
+      if (currentDescription && storedAnalysis) {
+        // Compare current description with original AI suggestions
+        var learnings = extractLearningsFromCorrection(currentDescription, storedAnalysis);
+        
+        if (learnings.length > 0) {
+          Logger.log('Learning from ' + image.name + ': ' + JSON.stringify(learnings));
+          
+          // Update knowledge base with learnings
+          learnings.forEach(function(learning) {
+            updateKnowledgeBase(knowledgeBase, learning);
+          });
+          
+          learningCount++;
+        }
+      }
+    } catch (e) {
+      Logger.log('ERROR learning from ' + image.name + ': ' + e.message);
+    }
+  });
+  
+  if (learningCount > 0) {
+    saveKnowledgeBase(knowledgeBase);
+    Logger.log('Learning complete. Updated knowledge base from ' + learningCount + ' corrections.');
+  } else {
+    Logger.log('No new learnings found.');
+  }
+}
+
+/**
+ * Get file description from Drive
+ */
+function getFileDescription(fileId) {
+  try {
+    var url = DRIVE_FILES_URL + '/' + fileId + '?fields=description';
+    var options = {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
+      }
+    };
+    
+    var response = UrlFetchApp.fetch(url, options);
+    var result = JSON.parse(response.getContentText());
+    return result.description || '';
+  } catch (e) {
+    Logger.log('ERROR getting description for ' + fileId + ': ' + e.message);
+    return '';
+  }
+}
+
+/**
+ * Extract learnings from user corrections
+ */
+function extractLearningsFromCorrection(userDescription, visionAnalysis) {
+  var learnings = [];
+  
+  // Parse user tags from description
+  var userTags = extractTagsFromDescription(userDescription);
+  
+  // Learn from structured tags
+  userTags.forEach(function(tag) {
+    if (tag.includes(':')) {
+      var parts = tag.split(':');
+      var category = parts[0];
+      var value = parts[1];
+      
+      // Learn associations with Vision data
+      if (category === 'person' && visionAnalysis.faces && visionAnalysis.faces.length > 0) {
+        learnings.push({
+          type: 'person_face_association',
+          person: value,
+          faceData: visionAnalysis.faces[0], // Assume first face for now
+          context: userDescription
+        });
+      }
+      
+      if (category === 'app' && visionAnalysis.text) {
+        learnings.push({
+          type: 'app_text_association',
+          app: value,
+          textData: visionAnalysis.text.fullText,
+          context: userDescription
+        });
+      }
+      
+      if (category === 'location' && visionAnalysis.text) {
+        learnings.push({
+          type: 'location_context_association',
+          location: value,
+          textData: visionAnalysis.text.fullText,
+          objectData: visionAnalysis.objects,
+          context: userDescription
+        });
+      }
+    }
+  });
+  
+  return learnings;
+}
+
+/**
+ * Extract hashtags from description text
+ */
+function extractTagsFromDescription(description) {
+  var tagPattern = /#[\w:]+/g;
+  var matches = description.match(tagPattern) || [];
+  return matches.map(function(tag) { return tag.substring(1); }); // Remove #
+}
+
+/**
+ * Update knowledge base with new learning
+ */
+function updateKnowledgeBase(knowledgeBase, learning) {
+  switch(learning.type) {
+    case 'person_face_association':
+      if (!knowledgeBase.faceDatabase[learning.person]) {
+        knowledgeBase.faceDatabase[learning.person] = {
+          faceExamples: [],
+          confidence: 0
+        };
+      }
+      knowledgeBase.faceDatabase[learning.person].faceExamples.push({
+        faceData: learning.faceData,
+        context: learning.context,
+        timestamp: new Date().toISOString()
+      });
+      break;
+      
+    case 'app_text_association':
+      if (!knowledgeBase.appPatterns[learning.app]) {
+        knowledgeBase.appPatterns[learning.app] = {
+          textPatterns: [],
+          confidence: 0
+        };
+      }
+      knowledgeBase.appPatterns[learning.app].textPatterns.push({
+        text: learning.textData,
+        context: learning.context,
+        timestamp: new Date().toISOString()
+      });
+      break;
+      
+    case 'location_context_association':
+      if (!knowledgeBase.contextPatterns[learning.location]) {
+        knowledgeBase.contextPatterns[learning.location] = {
+          textPatterns: [],
+          objectPatterns: [],
+          confidence: 0
+        };
+      }
+      knowledgeBase.contextPatterns[learning.location].textPatterns.push({
+        text: learning.textData,
+        context: learning.context,
+        timestamp: new Date().toISOString()
+      });
+      break;
+  }
+}
+
+/**
+ * Manual training function - label a specific image
+ */
+function trainOnImage(fileId, labels) {
+  Logger.log('Training on image: ' + fileId + ' with labels: ' + JSON.stringify(labels));
+  
+  // Analyze image with Vision API
+  var analysis = analyzeImageWithVision(fileId);
+  
+  if (!analysis) {
+    Logger.log('ERROR: Could not analyze image');
+    return;
+  }
+  
+  var knowledgeBase = getKnowledgeBase();
+  
+  // Process each label
+  labels.forEach(function(label) {
+    if (label.type === 'person' && analysis.faces.length > 0) {
+      // Train face recognition
+      if (!knowledgeBase.faceDatabase[label.value]) {
+        knowledgeBase.faceDatabase[label.value] = {
+          faceExamples: [],
+          confidence: 0
+        };
+      }
+      
+      // Add face example (use first face for simplicity)
+      knowledgeBase.faceDatabase[label.value].faceExamples.push({
+        faceData: analysis.faces[0],
+        fileId: fileId,
+        timestamp: new Date().toISOString()
+      });
+      
+      Logger.log('Added face example for: ' + label.value);
+    }
+  });
+  
+  saveKnowledgeBase(knowledgeBase);
+  Logger.log('Training complete for image: ' + fileId);
+}
+
+/**
+ * Test function to manually train on Ben's face
+ * Usage: trainOnBensFace('your-file-id-here')
+ */
+function trainOnBensFace(fileId) {
+  trainOnImage(fileId, [
+    { type: 'person', value: 'Ben' }
+  ]);
+}
+
+/**
+ * Test function to analyze a specific image with Vision API
+ */
+function testVisionOnSpecificImage() {
+  // Get the first available image from the folder
+  var images = getImagesFromFolder(DRIVE_FOLDER_ID, 1);
+  
+  if (images.length === 0) {
+    Logger.log('No images found to test');
+    return;
+  }
+  
+  var testImage = images[0];
+  Logger.log('Testing Vision API on: ' + testImage.name + ' (ID: ' + testImage.id + ')');
+  
+  var analysis = analyzeImageWithVision(testImage.id);
+  
+  if (analysis) {
+    Logger.log('=== VISION ANALYSIS RESULTS ===');
+    Logger.log('Faces detected: ' + (analysis.faces ? analysis.faces.length : 0));
+    Logger.log('Text detected: ' + (analysis.text ? analysis.text.fullText.substring(0, 100) : 'None'));
+    Logger.log('Apps detected: ' + JSON.stringify(analysis.text ? analysis.text.apps : []));
+    Logger.log('Objects detected: ' + analysis.objects.length);
+    Logger.log('Smart suggestions: ' + JSON.stringify(analysis.suggestions));
+    Logger.log('=== END ANALYSIS ===');
+  } else {
+    Logger.log('Vision analysis failed');
+  }
+}
+
 // ============================================================
 // CLEANUP
 // ============================================================
@@ -785,4 +1535,67 @@ function createWeeklyTrigger() {
     .create();
 
   Logger.log('Weekly trigger created: every Monday at 9 AM.');
+}
+
+// ============================================================
+// THEME MANAGEMENT
+// ============================================================
+
+/**
+ * Uploads a Blogger theme XML stored in Google Drive to this blog.
+ * Usage: pass the Drive fileId of the XML file.
+ * Run via: clasp run uploadThemeFromDrive --params '["<fileId>"]'
+ */
+function uploadThemeFromDrive(fileId) {
+  var token = ScriptApp.getOAuthToken();
+
+  // Read XML from Drive
+  var driveUrl = 'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media';
+  var driveRes = UrlFetchApp.fetch(driveUrl, {
+    headers: { Authorization: 'Bearer ' + token },
+    muteHttpExceptions: true
+  });
+  if (driveRes.getResponseCode() !== 200) {
+    throw new Error('Failed to read file from Drive: ' + driveRes.getContentText().substring(0, 300));
+  }
+  var xmlContent = driveRes.getContentText();
+  Logger.log('Read theme XML from Drive: ' + xmlContent.length + ' chars');
+
+  // PUT to Blogger template API
+  var templateUrl = 'https://www.blogger.com/feeds/' + BLOG_ID + '/template/default';
+  var res = UrlFetchApp.fetch(templateUrl, {
+    method: 'put',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/atom+xml',
+      'GData-Version': '2'
+    },
+    payload: xmlContent,
+    muteHttpExceptions: true
+  });
+  var status = res.getResponseCode();
+  Logger.log('Upload response: HTTP ' + status);
+  if (status < 200 || status >= 300) {
+    throw new Error('Theme upload failed (HTTP ' + status + '): ' + res.getContentText().substring(0, 500));
+  }
+  Logger.log('Theme uploaded successfully!');
+  return 'OK: HTTP ' + status;
+}
+
+/**
+ * Test: GET the current template to verify the API endpoint works.
+ */
+function getThemeTest() {
+  var token = ScriptApp.getOAuthToken();
+  var templateUrl = 'https://www.blogger.com/feeds/' + BLOG_ID + '/template/default';
+  var res = UrlFetchApp.fetch(templateUrl, {
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'GData-Version': '2'
+    },
+    muteHttpExceptions: true
+  });
+  Logger.log('GET template HTTP: ' + res.getResponseCode());
+  Logger.log('Response (first 500): ' + res.getContentText().substring(0, 500));
+  return res.getResponseCode();
 }

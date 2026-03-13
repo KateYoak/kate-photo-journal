@@ -19,7 +19,9 @@
   },
   "homepage": "https://github.com/KateYoak/kate-photo-journal#readme",
   "dependencies": {
+    "chrome-cookies-secure": "^3.0.1",
     "googleapis": "^171.4.0",
+    "playwright": "^1.58.2",
     "puppeteer": "^24.39.0"
   }
 }
